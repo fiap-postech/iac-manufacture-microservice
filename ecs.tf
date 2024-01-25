@@ -189,7 +189,8 @@ resource "aws_iam_role_policy" "service_execution_policy" {
           "dynamodb:Query",
         ],
         Resource = [
-          aws_dynamodb_table.this.arn
+          aws_dynamodb_table.this.arn,
+          "${aws_dynamodb_table.this.arn}/*"
         ]
       }
     ]
