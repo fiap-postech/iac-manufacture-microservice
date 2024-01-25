@@ -1,7 +1,7 @@
 locals {
   subscription = {
     purchase_created_topic = {
-      name                 = "prd-purcharse-created-topic"
+      name                 = "prd-purchase-created-topic"
       protocol             = "sqs"
       raw_message_delivery = true
     }
