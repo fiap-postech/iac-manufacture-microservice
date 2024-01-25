@@ -1,5 +1,29 @@
-resource "aws_sqs_queue" "payment_done_queue" {
+resource "aws_sqs_queue" "purchase_created_queue" {
   name                       = local.sqs.name
+  delay_seconds              = local.sqs.delay_seconds
+  max_message_size           = local.sqs.max_message_size
+  message_retention_seconds  = local.sqs.message_retention_seconds
+  receive_wait_time_seconds  = local.sqs.receive_wait_time_seconds
+  visibility_timeout_seconds = local.sqs.visibility_timeout_seconds
+  sqs_managed_sse_enabled    = local.sqs.sqs_managed_sse_enabled
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.purchase_created_queue_dlq.arn,
+    maxReceiveCount     = 3
+  })
+
+  redrive_allow_policy = jsonencode({
+    redrivePermission = "byQueue",
+    sourceQueueArns   = ["${aws_sqs_queue.purchase_created_queue_dlq.arn}"]
+  })
+
+  depends_on = [
+    aws_sqs_queue.purchase_created_queue_dlq
+  ]
+}
+
+resource "aws_sqs_queue" "purchase_created_queue_dlq" {
+  name                       = "${local.sqs.name}-dlq"
   delay_seconds              = local.sqs.delay_seconds
   max_message_size           = local.sqs.max_message_size
   message_retention_seconds  = local.sqs.message_retention_seconds
@@ -11,17 +35,17 @@ resource "aws_sqs_queue" "payment_done_queue" {
 resource "aws_sns_topic_subscription" "get_payment_done_events" {
   topic_arn            = data.aws_sns_topic.purchase_created_topic.arn
   protocol             = local.subscription.purchase_created_topic.protocol
-  endpoint             = aws_sqs_queue.payment_done_queue.arn
+  endpoint             = aws_sqs_queue.purchase_created_queue.arn
   raw_message_delivery = local.subscription.purchase_created_topic.raw_message_delivery
 
   depends_on = [
-    aws_sqs_queue.payment_done_queue,
+    aws_sqs_queue.purchase_created_queue,
     data.aws_sns_topic.purchase_created_topic
   ]
 }
 
-resource "aws_sqs_queue_policy" "payment_done_to_process_subscription" {
-  queue_url = aws_sqs_queue.payment_done_queue.id
+resource "aws_sqs_queue_policy" "purchase_created_to_manufacture_subscription" {
+  queue_url = aws_sqs_queue.purchase_created_queue.id
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -34,7 +58,7 @@ resource "aws_sqs_queue_policy" "payment_done_to_process_subscription" {
           "sqs:SendMessage"
         ],
         Resource = [
-          aws_sqs_queue.payment_done_queue.arn
+          aws_sqs_queue.purchase_created_queue.arn
         ],
         Condition = {
           ArnEquals = {
