@@ -236,7 +236,7 @@ resource "aws_ecs_task_definition" "task_definition" {
         [
           {
             name  = "purchase.host"
-            value = data.aws_lb.purchase_alb.dns_name
+            value = "${data.aws_lb.purchase_alb.dns_name}/purchase"
           }
         ]
       )
