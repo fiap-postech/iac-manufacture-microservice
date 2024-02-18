@@ -1,14 +1,14 @@
 locals {
   subscription = {
-    purchase_created_topic = {
-      name                 = "prd-purchase-created-topic"
+    purchase_paid_topic = {
+      name                 = "prd-purchase-paid-topic"
       protocol             = "sqs"
       raw_message_delivery = true
     }
   }
 
   sqs = {
-    name                       = "prd-manufacture-purchase-created-queue"
+    name                       = "prd-manufacture-purchase-paid-queue"
     delay_seconds              = 0
     max_message_size           = 262144
     message_retention_seconds  = 86400
