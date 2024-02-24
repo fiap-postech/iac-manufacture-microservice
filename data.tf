@@ -63,8 +63,8 @@ data "aws_apigatewayv2_vpc_link" "gateway_vpc_link" {
   vpc_link_id = local.api_gateway.vpc_link.id
 }
 
-data "aws_sns_topic" "purchase_created_topic" {
-  name = local.subscription.purchase_created_topic.name
+data "aws_sns_topic" "purchase_paid_topic" {
+  name = local.subscription.purchase_paid_topic.name
 }
 
 data "aws_lb" "purchase_alb" {
